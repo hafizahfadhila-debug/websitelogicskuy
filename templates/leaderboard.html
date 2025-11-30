@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaderboard - Quiz Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-image: url('/static/image/leaderboard.png');
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .navbar {
+            background: white;
+            padding: 15px 30px;
+            border-radius: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-back {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-back:hover {
+            background: #5568d3;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .tab-btn:hover {
+            border-color: #667eea;
+        }
+
+        .tab-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .leaderboard-container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .leaderboard-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .leaderboard-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .leaderboard-table thead {
+            background: #f8f9fa;
+        }
+
+        .leaderboard-table th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .leaderboard-table td {
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .leaderboard-table tbody tr {
+            transition: all 0.3s ease;
+        }
+
+        .leaderboard-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .rank {
+            font-weight: bold;
+            font-size: 18px;
+            color: #667eea;
+            width: 60px;
+        }
+
+        .rank-1 {
+            color: #FFD700;
+        }
+
+        .rank-2 {
+            color: #C0C0C0;
+        }
+
+        .rank-3 {
+            color: #CD7F32;
+        }
+
+        .medal {
+            font-size: 24px;
+            margin-right: 10px;
+        }
+
+        .player-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .score {
+            font-weight: bold;
+            color: #667eea;
+            font-size: 18px;
+        }
+
+        .date {
+            color: #999;
+            font-size: 14px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 50px;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .leaderboard-table {
+                font-size: 14px;
+            }
+
+            .leaderboard-table th,
+            .leaderboard-table td {
+                padding: 10px 8px;
+            }
+
+            .date {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <button class="btn-back" onclick="window.location.href='/dashboard'">← Kembali</button>
+        <span style="font-weight: 600; color: #333;">Leaderboard</span>
+    </nav>
+
+    <div class="container">
+        <div class="header">
+            <h1>🏆 Leaderboard</h1>
+            <p>Top 10 Peringkat Tertinggi Per Kategori</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('Aritmatika Sosial')">💰 Aritmatika Sosial</button>
+            <button class="tab-btn" onclick="switchTab('Fungsi')">📈 Fungsi</button>
+            <button class="tab-btn" onclick="switchTab('Aturan Pencacahan')">🔢 Aturan Pencacahan</button>
+            <button class="tab-btn" onclick="switchTab('Statistika')">📊 Statistika</button>
+            <button class="tab-btn" onclick="switchTab('Logika')">🧠 Logika</button>
+        </div>
+
+        <div class="leaderboard-container">
+            <div class="leaderboard-title" id="categoryTitle">Aritmatika Sosial</div>
+            <div id="leaderboardContent"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentCategory = 'Aritmatika Sosial';
+        let allLeaderboards = {};
+
+        async function loadLeaderboards() {
+            try {
+                const response = await fetch('/api/leaderboard/all');
+                allLeaderboards = await response.json();
+                displayLeaderboard(currentCategory);
+            } catch (error) {
+                console.error('Error loading leaderboards:', error);
+            }
+        }
+
+        function switchTab(category) {
+            currentCategory = category;
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            document.getElementById('categoryTitle').textContent = category;
+            displayLeaderboard(category);
+        }
+
+        function displayLeaderboard(category) {
+            const data = allLeaderboards[category] || [];
+            const container = document.getElementById('leaderboardContent');
+
+            if (data.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📝</div>
+                        <h3>Belum Ada Data</h3>
+                        <p>Jadilah yang pertama menduduki leaderboard kategori ini!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = `
+                <table class="leaderboard-table">
+                    <thead>
+                        <tr>
+                            <th>Peringkat</th>
+                            <th>Nama</th>
+                            <th>Skor</th>
+                            <th class="date">Tanggal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            data.forEach((entry, index) => {
+                const rank = index + 1;
+                let rankDisplay = `<span class="rank rank-${rank <= 3 ? rank : ''}">${rank}</span>`;
+                
+                if (rank === 1) {
+                    rankDisplay = '<span class="medal">🥇</span>' + rankDisplay;
+                } else if (rank === 2) {
+                    rankDisplay = '<span class="medal">🥈</span>' + rankDisplay;
+                } else if (rank === 3) {
+                    rankDisplay = '<span class="medal">🥉</span>' + rankDisplay;
+                }
+
+                html += `
+                    <tr>
+                        <td>${rankDisplay}</td>
+                        <td class="player-name">${entry.name}</td>
+                        <td class="score">${entry.score}</td>
+                        <td class="date">${entry.date}</td>
+                    </tr>
+                `;
+            });
+
+            html += `
+                    </tbody>
+                </table>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        loadLeaderboards();
+    </script>
+</body>
+</html>

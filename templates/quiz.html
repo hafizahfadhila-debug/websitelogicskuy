@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz - {{ category }}</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-image: url('/static/image/QUIZ.png');
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .navbar {
+            background: white;
+            padding: 15px 30px;
+            border-radius: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-back {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-back:hover {
+            background: #5568d3;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .quiz-header {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .quiz-info h2 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .quiz-progress {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .timer {
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .timer.warning {
+            color: #e74c3c;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .quiz-card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .question-text {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .question-image {
+            max-width: 100%;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-btn {
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+            font-size: 16px;
+        }
+
+        .option-btn:hover {
+            background: #e9ecef;
+            border-color: #667eea;
+        }
+
+        .option-btn.selected {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 15px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .btn-submit:hover {
+            background: #5568d3;
+        }
+
+        .btn-submit:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            animation: modalSlideIn 0.3s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .modal-message {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .correct-answer {
+            background: #d4edda;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            color: #155724;
+        }
+
+        .btn-modal {
+            padding: 12px 30px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-modal:hover {
+            background: #5568d3;
+        }
+
+        .score-summary {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .score-number {
+            font-size: 72px;
+            font-weight: bold;
+            color: #667eea;
+            margin: 20px 0;
+        }
+
+        .score-details {
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .no-questions {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+        }
+
+        @media (max-width: 768px) {
+            .quiz-header {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .btn-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <button class="btn-back" onclick="window.location.href='/dashboard'">← Kembali</button>
+        <span style="font-weight: 600; color: #333;">{{ category }}</span>
+    </nav>
+
+    <div class="container" id="quizContainer">
+        <div class="quiz-header">
+            <div class="quiz-info">
+                <h2>Soal <span id="currentQuestion">1</span> dari <span id="totalQuestions">0</span></h2>
+                <div class="quiz-progress">Skor: <span id="currentScore">0</span></div>
+            </div>
+            <div class="timer" id="timer">30</div>
+        </div>
+
+        <div class="quiz-card" id="questionCard">
+            <div class="no-questions">Tidak ada soal tersedia untuk kategori ini.</div>
+        </div>
+    </div>
+
+    <div class="modal" id="resultModal">
+        <div class="modal-content">
+            <div class="modal-icon" id="modalIcon"></div>
+            <div class="modal-title" id="modalTitle"></div>
+            <div class="modal-message" id="modalMessage"></div>
+            <div class="correct-answer" id="correctAnswer" style="display: none;"></div>
+            <button class="btn-modal" onclick="nextQuestion()">Lanjut</button>
+        </div>
+    </div>
+
+    <script>
+        const category = "{{ category }}";
+        const userName = "{{ name }}";
+        let questions = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let selectedAnswer = null;
+        let timer;
+        let timeLeft = 30;
+
+        async function loadQuestions() {
+            try {
+                const response = await fetch(`/api/questions/${encodeURIComponent(category)}`);
+                questions = await response.json();
+                
+                if (questions.length === 0) {
+                    document.getElementById('questionCard').innerHTML = '<div class="no-questions">Tidak ada soal tersedia untuk kategori ini. <br><br> Silakan hubungi admin untuk menambahkan soal.</div>';
+                    return;
+                }
+
+                document.getElementById('totalQuestions').textContent = questions.length;
+                showQuestion();
+            } catch (error) {
+                console.error('Error loading questions:', error);
+            }
+        }
+
+        function showQuestion() {
+            if (currentQuestionIndex >= questions.length) {
+                showFinalScore();
+                return;
+            }
+
+            const question = questions[currentQuestionIndex];
+            selectedAnswer = null;
+            timeLeft = 30;
+            
+            document.getElementById('currentQuestion').textContent = currentQuestionIndex + 1;
+            document.getElementById('currentScore').textContent = score;
+
+            let html = '<div class="question-text">' + question.question + '</div>';
+            
+            if (question.image) {
+                html += `<img src="${question.image}" class="question-image" alt="Question image">`;
+            }
+
+            html += '<div class="options">';
+            question.options.forEach((option, index) => {
+                html += `<button class="option-btn" onclick="selectAnswer(${index})">${option}</button>`;
+            });
+            html += '</div>';
+            html += '<button class="btn-submit" onclick="submitAnswer()" disabled>Jawab</button>';
+
+            document.getElementById('questionCard').innerHTML = html;
+
+            startTimer();
+            
+            // Render MathJax if equations exist
+            if (window.MathJax) {
+                MathJax.typesetPromise();
+            }
+        }
+
+        function selectAnswer(index) {
+            selectedAnswer = index;
+            
+            document.querySelectorAll('.option-btn').forEach((btn, i) => {
+                btn.classList.remove('selected');
+                if (i === index) {
+                    btn.classList.add('selected');
+                }
+            });
+            
+            document.querySelector('.btn-submit').disabled = false;
+        }
+
+        function startTimer() {
+            clearInterval(timer);
+            const timerElement = document.getElementById('timer');
+            timerElement.classList.remove('warning');
+            
+            timer = setInterval(() => {
+                timeLeft--;
+                timerElement.textContent = timeLeft;
+                
+                if (timeLeft <= 10) {
+                    timerElement.classList.add('warning');
+                }
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    submitAnswer(true);
+                }
+            }, 1000);
+        }
+
+        function submitAnswer(timeout = false) {
+            clearInterval(timer);
+            
+            const question = questions[currentQuestionIndex];
+            const modal = document.getElementById('resultModal');
+            const modalIcon = document.getElementById('modalIcon');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalMessage = document.getElementById('modalMessage');
+            const correctAnswerDiv = document.getElementById('correctAnswer');
+
+            if (timeout || selectedAnswer === null) {
+                modalIcon.textContent = '⏰';
+                modalTitle.textContent = 'Waktu Habis!';
+                modalMessage.textContent = 'Kamu tidak menjawab dalam waktu yang ditentukan.';
+                correctAnswerDiv.style.display = 'block';
+                correctAnswerDiv.innerHTML = '<strong>Jawaban yang benar:</strong><br>' + question.options[question.correctAnswer];
+            } else if (selectedAnswer === question.correctAnswer) {
+                score += 10;
+                modalIcon.textContent = '✅';
+                modalTitle.textContent = 'Benar!';
+                modalMessage.textContent = 'Selamat! Jawaban kamu benar.';
+                correctAnswerDiv.style.display = 'none';
+            } else {
+                modalIcon.textContent = '❌';
+                modalTitle.textContent = 'Salah!';
+                modalMessage.textContent = 'Jawaban kamu kurang tepat.';
+                correctAnswerDiv.style.display = 'block';
+                correctAnswerDiv.innerHTML = '<strong>Jawaban yang benar:</strong><br>' + question.options[question.correctAnswer];
+            }
+
+            modal.classList.add('show');
+        }
+
+        function nextQuestion() {
+            document.getElementById('resultModal').classList.remove('show');
+            currentQuestionIndex++;
+            showQuestion();
+        }
+
+        async function showFinalScore() {
+            clearInterval(timer);
+            
+            // Submit score to leaderboard
+            await fetch(`/api/leaderboard/${encodeURIComponent(category)}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    name: userName,
+                    score: score
+                })
+            });
+
+            const container = document.getElementById('quizContainer');
+            container.innerHTML = `
+                <div class="score-summary">
+                    <h1>Quiz Selesai!</h1>
+                    <div class="score-number">${score}</div>
+                    <div class="score-details">
+                        Kamu menjawab ${Math.floor(score / 10)} dari ${questions.length} soal dengan benar
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn-modal" onclick="window.location.reload()">Ulangi Quiz</button>
+                        <button class="btn-modal" onclick="window.location.href='/leaderboard'">Lihat Leaderboard</button>
+                        <button class="btn-modal" onclick="window.location.href='/dashboard'">Kembali ke Dashboard</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        loadQuestions();
+    </script>
+</body>
+</html>
